@@ -1,7 +1,7 @@
 {
     "name": "my-ctl",
     "mode": "module",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Python Project Template",
     "author": "yuanmingzhuo",
     "author_email": "1406046087@qq.com",
@@ -17,7 +17,7 @@
         "pytest==6.2.5"
     ],
     "entry_points": {
-        "roictl": "my_ctl:cli"
+        "myctl": "my_ctl:cli"
     },
     "python": ">=3.8",
     "repository": {
