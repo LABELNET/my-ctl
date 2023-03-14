@@ -10,6 +10,4 @@ cd dist
 twine upload dist/*
 
 # 输入账户密码
-smartahc
-smartahc_123
 ```

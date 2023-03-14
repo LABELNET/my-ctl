@@ -2,22 +2,17 @@
 # -*- encoding: utf-8 -*-
 
 """
-   @File    :   app_build_module.py
-   @Create  :   2021/11/03 20:34:45
+   @File    :   app_build_project.py
+   @Create  :   2023/03/14 20:42:00
    @Author  :   Yuan Mingzhuo
-   @Update  :   2021/11/03
-   @License :   (C)Copyright 2021-2023 LABELNET
+   @Update  :   2023/03/14
+   @License :   (C)Copyright 2014-2023 YuanMingZhuo All Rights Reserved 
    @Desc    :   Coding Below
 """
 
 import os
 
 from os.path import join
-from .app_tools import (
-    init_setup_py,
-    init_manifest_file,
-    init_package_file
-)
 
 
 """
@@ -42,7 +37,7 @@ def build_project_source(project_dirname, package):
     """
     # 源码位置
     build = package["build"]
-    dirname_source = join(project_dirname, build["source"])
+    dirname_source = join(project_dirname, build["src"])
     dirname_static = join(project_dirname, build["static"])
     print(dirname_static)
     # 编译位置
@@ -63,7 +58,7 @@ def build_project_source(project_dirname, package):
         "cp -f %s %s" % (dirname_json, dirname_build),
         "cp -f %s %s" % (dirname_main, dirname_build),
         "cp -f %s %s" % (dirname_requirement, dirname_build),
-        "rm -f %s/%s" % (dirname_build, "package.json")
+        "rm -f %s/%s" % (dirname_build, "config.yaml")
     ]
     cmd = " && ".join(cammands)
     os.system(cmd)
@@ -72,7 +67,7 @@ def build_project_source(project_dirname, package):
 """
 ./build
 ├── package.json
-├── roi_ctl.bin
+├── my_ctl.bin
 └── static
     └── README.md
 """
@@ -89,7 +84,7 @@ def build_project_binary(project_dirname, package):
     """
     # 源码位置
     build = package["build"]
-    name = build["source"]
+    name = build["src"]
     dirname_build = join(project_dirname, "build")
     dirname_static = join(project_dirname, build["static"])
     dirname_main = join(project_dirname, "main.py")
@@ -126,7 +121,7 @@ def build_project_binary(project_dirname, package):
         "cp -rf %s %s" % (dirname_static, dirname_build),
         "cp -f %s %s" % (dirname_json, dirname_build),
         "cp -f %s %s" % (dirname_requirement, dirname_build),
-        "rm -f %s/%s" % (dirname_build, "package.json")
+        "rm -f %s/%s" % (dirname_build, "config.yaml")
     ]
     cmd = " && ".join(cammands)
     os.system(cmd)

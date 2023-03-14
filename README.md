@@ -4,11 +4,10 @@ Python 项目脚手架工具
 
 > Python 3.8 
 
-
 ## Install
 
 ```
-pip install roi-ctl
+pip install my-ctl
 ```
 
 ## Use
@@ -30,7 +29,7 @@ Commands:
 ## Build & Deploy
 
 ```
-python main.py build --env product
+python main.py build -e product
 cd dist
 twine upload dist/*
 ``` 

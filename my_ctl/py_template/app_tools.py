@@ -3,16 +3,16 @@
 
 """
    @File    :   app_tools.py
-   @Create  :   2021/10/29 11:11:42
+   @Create  :   2023/03/14 20:41:33
    @Author  :   Yuan Mingzhuo
-   @Update  :   2021/10/29
-   @License :   (C)Copyright 2021-2023 LABELNET
+   @Update  :   2023/03/14
+   @License :   (C)Copyright 2014-2023 YuanMingZhuo All Rights Reserved 
    @Desc    :   Coding Below
 """
 
 from os.path import dirname, abspath, join
 import os
-import json
+import yaml
 
 """
 命令操作函数
@@ -45,21 +45,6 @@ def placeholder_replace(file, holder, name):
         f.write(content)
 
 
-def placeholder_jsonequal(file, holder, holder_value):
-    """
-    文件-JSON 对象赋值
-    """
-    content = {}
-    # 读
-    with open(file, "r", encoding="utf-8") as f:
-        content = json.loads(f.read())
-    # 赋
-    content[holder] = holder_value
-    # 写
-    with open(file, "w", encoding="utf-8") as f:
-        f.write(json.dumps(content, indent=4))
-
-
 def static_template_dir():
     """
     获取静态文件夹路径
@@ -68,139 +53,18 @@ def static_template_dir():
     static_dirname = join(root_dirname, "static")
     return static_dirname
 
-
-def init_pacakge_json(package_dir,mode):
+def get_configs(package_dir):
     """
-    初始化 package json
-    """
-    content = {
-        "name": "{NAME}",
-        "mode": "module",
-        "version": "1.0.0",
-        "description": "Project Or Module Infomation",
-        "author": "roictl",
-        "author_email": "ops@smartahc.com",
-        "keywords": [
-            "{PACKAGE_NAME}"
-        ],
-        "license": "smartahc",
-        "requires": [
-            "requests"
-        ],
-        "entry_points": {},
-        "python": ">=3.6",
-        "repository": {},
-        "environ_static": "{PACKAGE_NAME_PATH}",
-        "build": {
-            "source": "{PACKAGE_NAME}",
-            "static": "static"
-        }
-    }
-    if mode == "project":
-        # 工程
-        content["mode"] = "project"
-        content["build"]["source"] = "app"
-    # package json
-    package_json = join(package_dir, "package.json")
-    with open(package_json, "w", encoding="utf-8") as f:
-        f.write(json.dumps(content, indent=4))
-
-
-def package_json(package_dir, name, repository):
-    """
-    配置 package.json 文件
+    获取 config.yaml 文件具体 key 的值
     ---
-    - package_dir，项目目录
-    - name，项目名称 a-b-c
-    - repository，代码仓库地址
-    """
-    # 文件地址
-    package_json = join(package_dir, "package.json")
-    # {NAME}
-    project_name = name
-    placeholder_replace(package_json, "{NAME}", project_name)
-    # {PACKAGE_NAME}
-    package_name = str(name).replace("-", "_")
-    placeholder_replace(package_json, "{PACKAGE_NAME}", package_name)
-    # {PACKAGE_NAME_PATH}
-    package_name_path = package_name.upper() + "_STATIC"
-    placeholder_replace(package_json, "{PACKAGE_NAME_PATH}", package_name_path)
-    # repository
-    holder = "repository"
-    placeholder_jsonequal(package_json, holder, repository)
-
-
-def get_package_json(package_dir):
-    """
-    获取 package.json 文件具体 key 的值
-    ---
-    package_dir: package_json 路径
+    package_dir: yaml 配置路径
     """
     content = {}
     # 读
     with open(package_dir, "r", encoding="utf-8") as f:
-        content = json.loads(f.read())
+        content = yaml.safe_load(f.read())
+    content = content['project']
     return content
-
-
-def readme_md(package_dir, name):
-    """
-    配置 readme.md 文件
-    ---
-    - package_dir , 项目目录
-    - name , 项目名称
-    """
-    # 文件地址
-    readme_file = join(package_dir, "README.md")
-    # {NAME}
-    project_name = name
-    placeholder_replace(readme_file, "{NAME}", project_name)
-    # {PACKAGE_NAME}
-    package_name = str(name).replace("-", "_")
-    placeholder_replace(readme_file, "{PACKAGE_NAME}", package_name)
-
-
-def docker_file(package_dir, name, docker_image):
-    """
-    配置 Dockerfile
-    ---
-    package_dir , 项目目录
-    name，项目名称
-    docker_image, 镜像路径
-    """
-    # DOCKER FILE
-    docker_file = join(package_dir, "Dockerfile")
-    package_name = str(name).replace("-", "_")
-    placeholder_replace(docker_file, "{PACKAGE_NAME}", package_name)
-    # README
-    readme_file = join(package_dir, "README.md")
-    placeholder_replace(readme_file, "{DOCKER_IMAGE}", docker_image)
-
-
-def gitlab_config(package_dir, repository):
-    """
-    配置 Gitlab 信息
-    ---
-    - package_dir,项目目录
-    - repository, gitlba 配置信息
-    """
-    # 检查是否支持 git
-    is_support_git = os.system("git --version")
-    if is_support_git != 0:
-        print("ERROR: Git 不可使用，请自行配置仓库地址")
-        return
-    if len(repository.keys()) == 0:
-        print("ERROR: Gitlab 配置不可用，可能仓库未创建")
-        return
-    repo_url = repository["gitlab_url"]
-    cammands = [
-        "cd %s" % (package_dir),
-        "git init",
-        "git remote add origin %s" % (repo_url),
-    ]
-    cmd = " && ".join(cammands)
-    os.system(cmd)
-
 
 def clear_cache(project_dirname):
     """
@@ -264,16 +128,16 @@ def init_setup_py(project_dirname, package, env):
     content = [
         "from setuptools import setup, find_packages",
         "setup(",
-        "name='%s'," % (package["name"]),
-        "version='%s'," % (version),
-        "description='%s'," % (package["description"]),
-        "author_email='%s'," % (package["author_email"]),
-        "author='%s'," % (package["author"]),
-        "license='%s'," % (package["license"]),
-        "keywords={1},".replace("{1}", str(package["keywords"])),
+        f"name='{package['name']}',",
+        f"version='{version}',",
+        f"description='{package['description']}',",
+        f"author_email='{package['author_email']}',",
+        f"author='{package['author']}',",
+        f"license='{package['license']}',",
+        f"keywords={str(package['keywords'])},",
         "packages=find_packages(),",
         "include_package_data=True,",
-        "install_requires={2},".replace("{2}", str(package["requires"])),
+        f"install_requires={str(package['requirements'])},",
         "python_requires='>=3.8',",
         "entry_points=\"\"\"\n%s\n\"\"\"" % (entry_content_string),
         ")",
@@ -289,10 +153,10 @@ def init_manifest_file(project_dirname, build):
     初始化 MANIFEST.in
     ---
     project_dirname , 根目录
-    build , { "source":"code" , "static" : "static resource" }
+    build , { "src":"code" , "static" : "static resource" }
     """
     manifest_file_dirname = join(project_dirname, "MANIFEST.in")
-    dirname_source = build["source"]
+    dirname_source = build["src"]
     dirname_static = build["static"]
     content = [
         "include %s/*" % (dirname_source),
@@ -320,13 +184,12 @@ def init_package_file(project_dirname, source):
         "import os",
         "import sys"
         "\n",
-        "from .%s import *" % (source),
+        f"from .{source} import *",
         "\n# MODULE REGISTER",
-        "globals().update(importlib.import_module('%s').__dict__)" % (source),
+        f"globals().update(importlib.import_module('{source}').__dict__)",
         "\n# STATIC PATH",
         "if sys.platform.startswith('linux'):",
-        "\tos.environ['%s'] = os.path.dirname(os.path.abspath(__file__))" % (
-            package_static_path)
+        f"\tos.environ['{package_static_path}'] = os.path.dirname(os.path.abspath(__file__))"
     ]
     content = "\r\n".join(content)
     with open(package_file_dirname, "w") as file:
@@ -334,7 +197,7 @@ def init_package_file(project_dirname, source):
     return package_file_dirname
 
 
-def check_package_json():
+def check_configs():
     """
     检查 Package JSON
     ---
@@ -342,13 +205,14 @@ def check_package_json():
     - package.json , json 对象
     """
     project_dirname = os.getcwd()
-    package_dirname = os.path.join(project_dirname, "package.json")
+    package_dirname = os.path.join(project_dirname, "config.yaml")
+
     if not os.path.exists(package_dirname):
         LOG = "ERROR: 没有找到 package.json，%s " % (package_dirname)
         print(LOG)
         return False, None, project_dirname
     # 配置文件
-    package = get_package_json(package_dirname)
+    package = get_configs(package_dirname)
     return True, package, project_dirname
 
 
@@ -357,7 +221,7 @@ def build_package_module(project_dirname, package):
     模块打包
     """
     build_name = package["build"]
-    print("BUILD", build_name["source"])
+    print("BUILD", build_name["src"])
     # BUILD
     dirname_build = join(project_dirname, "build")
     # DIST
@@ -366,9 +230,9 @@ def build_package_module(project_dirname, package):
     dirname_dist_dist = join(dirname_dist, "dist")
     # 执行打包
     cammands = [
-        "cd %s" % dirname_build,
-        "python setup.py sdist --dist-dir %s" % (dirname_dist_dist),
-        "mv %s.egg-info %s" % (build_name["source"], dirname_dist)
+        f"cd {dirname_build}",
+        f"python setup.py sdist --dist-dir {dirname_dist_dist}",
+        f"mv {build_name['src']}.egg-info {dirname_dist}"
     ]
     cmd = " && ".join(cammands)
     res = os.system(cmd)
@@ -388,7 +252,7 @@ def build_package_project(project_dirname, package, env):
     4）删除临时文件夹
     """
     build_name = package["build"]
-    print("BUILD", build_name["source"], env)
+    print("BUILD", build_name["src"], env)
     # name
     name = package["name"]
     # 先创建版本文件夹
@@ -403,13 +267,13 @@ def build_package_project(project_dirname, package, env):
     dirname_dist_tar_name = join(dirname_dist, tar_name)
     # cammand
     cammands = [
-        "rm -rf %s" % (dirname_package_name),
-        "rm -rf %s" % (dirname_dist),
-        "mkdir %s" % (dirname_package_name),
-        "cp -rf %s/* %s/" % (dirname_build, dirname_package_name),
-        "mkdir %s" % (dirname_dist),
-        "tar -zcvf %s %s/" % (dirname_dist_tar_name, tar_pacakge_name),
-        "rm -rf %s" % (dirname_package_name)
+        f"rm -rf {dirname_package_name}",
+        f"rm -rf {dirname_dist}",
+        f"mkdir {dirname_package_name}",
+        f"cp -rf {dirname_build}/* {dirname_package_name}/",
+        f"mkdir {dirname_dist}",
+        f"tar -zcvf {dirname_dist_tar_name} {tar_pacakge_name}/",
+        f"rm -rf {dirname_package_name}"
     ]
     cmd = " && ".join(cammands)
     res = os.system(cmd)

@@ -3,10 +3,10 @@
 
 """
    @File    :   app_build_module.py
-   @Create  :   2021/11/03 20:34:45
+   @Create  :   2023/03/14 20:42:26
    @Author  :   Yuan Mingzhuo
-   @Update  :   2021/11/03
-   @License :   (C)Copyright 2021-2023 LABELNET
+   @Update  :   2023/03/14
+   @License :   (C)Copyright 2014-2023 YuanMingZhuo All Rights Reserved 
    @Desc    :   Coding Below
 """
 
@@ -21,12 +21,12 @@ from .app_tools import (
 
 
 """
-MODULE BUILD DIR
+module dir
 ├── dist
-│   ├── roi_ctl-1.0.0-py3-none-any.whl
-│   └── roi-ctl-1.0.0.tar.gz
+│   ├── my_ctl-1.0.0-py3-none-any.whl
+│   └── my-ctl-1.0.0.tar.gz
 ├── MANIFEST.in
-├── roi_ctl.egg-info
+├── my_ctl.egg-info
 │   ├── dependency_links.txt
 │   ├── PKG-INFO
 │   ├── requires.txt
@@ -34,7 +34,6 @@ MODULE BUILD DIR
 ├── setup.py
 └── version.info
 """
-
 
 def build_module_source(project_dirname, package):
     """
@@ -48,8 +47,8 @@ def build_module_source(project_dirname, package):
     """
     # 源码位置
     build = package["build"]
-    package_name =   build["source"]
-    dirname_source = join(project_dirname, build["source"])
+    package_name =   build["src"]
+    dirname_source = join(project_dirname, build["src"])
     dirname_static = join(project_dirname, build["static"])
     print(dirname_static)
     # 编译位置
@@ -83,9 +82,9 @@ def build_module_binary(project_dirname, package):
     """
     # 源码位置
     build = package["build"]
-    name = build["source"]
+    name = build["src"]
     dirname_build = join(project_dirname, "build")
-    dirname_build_source = join(dirname_build, build["source"])
+    dirname_build_source = join(dirname_build, build["src"])
     dirname_build_source_static = join(dirname_build_source, build["static"])
     dirname_static = join(project_dirname, build["static"])
     # 执行编译
