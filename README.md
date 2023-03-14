@@ -14,16 +14,16 @@ pip install my-ctl
 
 ```
 $ myctl --help
-Usage: main.py [OPTIONS] COMMAND [ARGS]...
+Usage: myctl [OPTIONS] COMMAND [ARGS]...
 
-  集成项目 脚手架工具
+  MyCtl ，Python 和 C++ 项目工程的 创建、编译、打包、发布
 
 Options:
   --help  Show this message and exit.
 
 Commands:
-  build   项目构建, 构建源码包和二进制包
-  create  项目创建, 根据模板创建集成项目工程目录结构
+  build   工程构建, 构建源码包和二进制包
+  create  工程创建, 自动生成工程目录结构
 ```
 
 ## Build & Deploy
