@@ -1,7 +1,7 @@
 project:
   name: my-ctl
   mode: module
-  version: 1.0.2
+  version: 1.0.3
   description: myctl quick create  project
   author: labelnet
   author_email: labelnet@foxmail.com

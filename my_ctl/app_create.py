@@ -11,6 +11,7 @@
 """
 
 from .py_template import check_name , create_python
+from .cc_template import create_cc
 
 import click
 
@@ -47,5 +48,8 @@ def create(name, mode, language):
     if not check_name(name):
         print("ERROR:", "项目名称不符合规范，约定格式 a-b-c")
         return
-    create_python(name,mode)
+    if language == 'Python':
+        create_python(name,mode)
+    if language == 'C++':
+        create_cc(name)
     print(f"Create {name} successful!")
