@@ -1,6 +1,6 @@
 # my-ctl
 
-Python 项目脚手架工具
+项目工程化，脚手架工具
 
 > Python 3.8 
 
