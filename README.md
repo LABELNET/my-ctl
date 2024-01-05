@@ -28,6 +28,8 @@ Commands:
 
 ## Build & Deploy
 
+> pip install -r requirements.txt -i  https://pypi.tuna.tsinghua.edu.cn/simple/
+
 ```
 python main.py build -e product
 cd dist
@@ -35,3 +37,25 @@ twine upload dist/*
 ``` 
 
 > Input pypi Account And  Password
+
+```
+username : __token__
+password : pypi-AgEIcHlwaS5vcmcCJGM3MTQzMTBhLWM3NDItNDY5My1iMjQyLWY3MjdlN2QyYjYwOQACDlsxLFsibXktY3RsIl1dAAIsWzIsWyIxYTBiNzQ2Mi1kYzRiLTQzZmMtOTE3Ni1lNWU0MTQ4OWYwYjYiXV0AAAYgyLm7ptf4sKwyJ1G3Ggh_WQCOaa6c2pnn5gTbdiqV8-U
+```
+
+**.pypirc**
+
+```
+[distutils]
+  index-servers =
+    pypi
+    PROJECT_NAME
+
+[pypi]
+  username = __token__
+  password = # either a user-scoped token or a project-scoped token you want to set as the default
+[PROJECT_NAME]
+  repository = https://upload.pypi.org/legacy/
+  username = __token__
+  password = # a project token 
+```

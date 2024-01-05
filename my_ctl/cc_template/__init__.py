@@ -1,1 +1,1 @@
-from .app_dir import create_cc
+from .app_simple import create_cpp

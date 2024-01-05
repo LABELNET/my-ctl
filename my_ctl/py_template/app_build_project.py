@@ -11,8 +11,9 @@
 """
 
 import os
+import shutil
 
-from os.path import join
+from os.path import join, exists
 
 
 """
@@ -51,17 +52,24 @@ def build_project_source(project_dirname, package):
         print(LOG)
         return
     # 复制操作
-    cammands = [
-        "mkdir %s" % (dirname_build),
-        "cp -rf %s %s" % (dirname_source, dirname_build),
-        "cp -rf %s %s" % (dirname_static, dirname_build),
-        "cp -f %s %s" % (dirname_json, dirname_build),
-        "cp -f %s %s" % (dirname_main, dirname_build),
-        "cp -f %s %s" % (dirname_requirement, dirname_build),
-        "rm -f %s/%s" % (dirname_build, "config.yaml")
-    ]
-    cmd = " && ".join(cammands)
-    os.system(cmd)
+    # cammands = [
+    #     "mkdir %s" % (dirname_build),
+    #     "cp -rf %s %s" % (dirname_source, dirname_build),
+    #     "cp -rf %s %s" % (dirname_static, dirname_build),
+    #     "cp -f %s %s" % (dirname_json, dirname_build),
+    #     "cp -f %s %s" % (dirname_main, dirname_build),
+    #     "cp -f %s %s" % (dirname_requirement, dirname_build),
+    #     "rm -f %s/%s" % (dirname_build, "config.yaml")
+    # ]
+    # cmd = " && ".join(cammands)
+    # os.system(cmd)
+    if not exists(dirname_build):
+        os.makedirs(dirname_build)
+    shutil.copytree(dirname_source, dirname_build)
+    shutil.copytree(dirname_static, dirname_build)
+    shutil.copy(dirname_json, dirname_build)
+    shutil.copy(dirname_main, dirname_build)
+    shutil.copy(dirname_requirement, dirname_build)
 
 
 """
@@ -94,13 +102,7 @@ def build_project_binary(project_dirname, package):
         return
     # 执行编译
     cammands = ["cd %s" % project_dirname]
-    nuitka = [
-        "python",
-        "-m",
-        "nuitka",
-        "--no-pyi-file",
-        "--nofollow-imports"
-    ]
+    nuitka = ["python", "-m", "nuitka", "--no-pyi-file", "--nofollow-imports"]
     for root, dirs, files in os.walk(name):
         root = str(root).replace("/", ".")
         nuitka.append("--include-package=%s" % (root))
@@ -117,11 +119,15 @@ def build_project_binary(project_dirname, package):
     # dirname_package_json = join(project_dirname, "package.json")
     dirname_json = join(project_dirname, "*.json")
     dirname_requirement = join(project_dirname, "requirements.txt")
-    cammands = [
-        "cp -rf %s %s" % (dirname_static, dirname_build),
-        "cp -f %s %s" % (dirname_json, dirname_build),
-        "cp -f %s %s" % (dirname_requirement, dirname_build),
-        "rm -f %s/%s" % (dirname_build, "config.yaml")
-    ]
-    cmd = " && ".join(cammands)
-    os.system(cmd)
+    # cammands = [
+    #     "cp -rf %s %s" % (dirname_static, dirname_build),
+    #     "cp -f %s %s" % (dirname_json, dirname_build),
+    #     "cp -f %s %s" % (dirname_requirement, dirname_build),
+    #     "rm -f %s/%s" % (dirname_build, "config.yaml"),
+    # ]
+    # cmd = " && ".join(cammands)
+    # os.system(cmd)
+    shutil.copytree(dirname_static, dirname_build)
+    shutil.copy(dirname_json, dirname_build)
+    shutil.copy(dirname_main, dirname_build)
+    shutil.copy(dirname_requirement, dirname_build)

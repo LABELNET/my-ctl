@@ -11,13 +11,10 @@
 """
 
 import os
+import shutil
 
-from os.path import join
-from .app_tools import (
-    init_setup_py,
-    init_manifest_file,
-    init_package_file
-)
+from os.path import join, exists
+from .app_tools import init_setup_py, init_manifest_file, init_package_file
 
 
 """
@@ -35,6 +32,7 @@ module dir
 └── version.info
 """
 
+
 def build_module_source(project_dirname, package):
     """
     模块-开发环境-源码包-Setuptools
@@ -47,7 +45,7 @@ def build_module_source(project_dirname, package):
     """
     # 源码位置
     build = package["build"]
-    package_name =   build["src"]
+    package_name = build["src"]
     dirname_source = join(project_dirname, build["src"])
     dirname_static = join(project_dirname, build["static"])
     print(dirname_static)
@@ -57,14 +55,20 @@ def build_module_source(project_dirname, package):
     dirname_build_source = join(dirname_build, package_name)
     dirname_build_source_static = join(dirname_build_source, build["static"])
     # 复制操作
-    cammands = [
-        "mkdir %s" % (dirname_build),
-        "mkdir %s" % (dirname_build_source),
-        "cp -rf %s %s" % (dirname_source, dirname_build_source),
-        "cp -rf %s %s" % (dirname_static, dirname_build_source)
-    ]
-    cmd = " && ".join(cammands)
-    os.system(cmd)
+    # cammands = [
+    #     "mkdir %s" % (dirname_build),
+    #     "mkdir %s" % (dirname_build_source),
+    #     "cp -rf %s %s" % (dirname_source, dirname_build_source),
+    #     "cp -rf %s %s" % (dirname_static, dirname_build_source)
+    # ]
+    # cmd = " && ".join(cammands)
+    # os.system(cmd)
+    if not exists(dirname_build):
+        os.makedirs(dirname_build)
+    if not exists(dirname_build_source):
+        os.makedirs(dirname_build_source)
+    shutil.copytree(dirname_source, dirname_build_source)
+    shutil.copytree(dirname_static, dirname_build_source)
     # 创建 Setup
     init_setup_py(dirname_build, package, "dev")
     init_manifest_file(dirname_build, build)
@@ -96,10 +100,15 @@ def build_module_binary(project_dirname, package):
         "--module",
         name,
         "--no-pyi-file",
-        "--nofollow-imports"
+        "--nofollow-imports",
     ]
     for root, dirs, files in os.walk(name):
-        root = str(root).replace("/", ".")
+        if "__pycache__" in root:
+            continue
+        if "/" in root:
+            root = str(root).replace("/", ".")
+        if "\\" in root:
+            root = str(root).replace("\\", ".")
         nuitka.append("--include-package=%s" % (root))
     nuitka.append("--remove-output")
     nuitka.append("--output-dir=build/%s" % (name))
@@ -109,7 +118,9 @@ def build_module_binary(project_dirname, package):
     print("BUILD MODUEL CMD:", cmd)
     res = os.system(cmd)
     # 复制静态资源
-    os.system("cp -rf %s %s" % (dirname_static, dirname_build_source_static))
+    # os.system("cp -rf %s %s" % (dirname_static, dirname_build_source_static))
+    if exists(dirname_static):
+        shutil.copytree(dirname_static, dirname_build_source_static)
     # 初始化
     init_setup_py(dirname_build, package, "product")
     init_manifest_file(dirname_build, build)

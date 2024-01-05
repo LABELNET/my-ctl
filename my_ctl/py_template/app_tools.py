@@ -10,9 +10,11 @@
    @Desc    :   Coding Below
 """
 
-from os.path import dirname, abspath, join
+from os.path import dirname, abspath, join, exists
 import os
 import yaml
+import shutil
+import tarfile
 
 """
 命令操作函数
@@ -53,6 +55,7 @@ def static_template_dir():
     static_dirname = join(root_dirname, "static")
     return static_dirname
 
+
 def get_configs(package_dir):
     """
     获取 config.yaml 文件具体 key 的值
@@ -63,8 +66,9 @@ def get_configs(package_dir):
     # 读
     with open(package_dir, "r", encoding="utf-8") as f:
         content = yaml.safe_load(f.read())
-    content = content['project']
+    content = content["project"]
     return content
+
 
 def clear_cache(project_dirname):
     """
@@ -72,23 +76,26 @@ def clear_cache(project_dirname):
     ---
     包括: build , __pycache__ , *.onnx , *.engine
     """
-    cammand = [
-        "cd %s" % project_dirname,
-        "rm -rf dist",
-        "rm -rf build",
-        "find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete",
-        "find . -type f -name '*.onnx' -delete -o -type d",
-        "find . -type f -name '*.engine' -delete -o -type d",
-    ]
-    cmd = " && ".join(cammand)
-    print("BUILD CLEAR:", cmd)
-    res = os.system(cmd)
-    if res == 0:
-        print("BUILD CLEAR SUCCESSFUL")
-        return True
-    else:
-        print("BUILD CLEAR ERROR")
-        return False
+    # cammand = [
+    #     "cd %s" % project_dirname,
+    #     "rm -rf dist",
+    #     "rm -rf build",
+    #     "find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete",
+    #     "find . -type f -name '*.onnx' -delete -o -type d",
+    #     "find . -type f -name '*.engine' -delete -o -type d",
+    # ]
+    # cmd = " && ".join(cammand)
+    # print("BUILD CLEAR:", cmd)
+    # res = os.system(cmd)
+    shutil.rmtree(join(os.getcwd(), project_dirname, "dist"), ignore_errors=True)
+    shutil.rmtree(join(os.getcwd(), project_dirname, "build"), ignore_errors=True)
+    # if res == 0:
+    #     print("BUILD CLEAR SUCCESSFUL")
+    #     return True
+    # else:
+    #     print("BUILD CLEAR ERROR")
+    #     return False
+    return True
 
 
 def get_version(version, env):
@@ -96,7 +103,7 @@ def get_version(version, env):
     版本号，约定
     ---
     is_dev = True , version = version + .1
-    is_dev = False, version 
+    is_dev = False, version
     """
     if "dev" == env:
         version += ".1"
@@ -139,7 +146,7 @@ def init_setup_py(project_dirname, package, env):
         "include_package_data=True,",
         f"install_requires={str(package['requirements'])},",
         "python_requires='>=3.8',",
-        "entry_points=\"\"\"\n%s\n\"\"\"" % (entry_content_string),
+        'entry_points="""\n%s\n"""' % (entry_content_string),
         ")",
     ]
     content = "\r\n".join(content)
@@ -161,7 +168,7 @@ def init_manifest_file(project_dirname, build):
     content = [
         "include %s/*" % (dirname_source),
         "include %s/*/*" % (dirname_source),
-        "recursive-include %s %s *" % (dirname_source, dirname_static)
+        "recursive-include %s %s *" % (dirname_source, dirname_static),
     ]
     content = "\r\n".join(content)
     with open(manifest_file_dirname, "w") as file:
@@ -175,21 +182,19 @@ def init_package_file(project_dirname, source):
     ---
     project_dirname ，根目录
     """
-    package_file_dirname = join(
-        project_dirname, "build", source, "__init__.py")
+    package_file_dirname = join(project_dirname, "build", source, "__init__.py")
     # PATH
-    package_static_path = str(source).upper()+"_STATIC"
+    package_static_path = str(source).upper() + "_STATIC"
     content = [
         "import importlib",
         "import os",
-        "import sys"
-        "\n",
+        "import sys" "\n",
         f"from .{source} import *",
         "\n# MODULE REGISTER",
         f"globals().update(importlib.import_module('{source}').__dict__)",
         "\n# STATIC PATH",
         "if sys.platform.startswith('linux'):",
-        f"\tos.environ['{package_static_path}'] = os.path.dirname(os.path.abspath(__file__))"
+        f"\tos.environ['{package_static_path}'] = os.path.dirname(os.path.abspath(__file__))",
     ]
     content = "\r\n".join(content)
     with open(package_file_dirname, "w") as file:
@@ -232,10 +237,10 @@ def build_package_module(project_dirname, package):
     cammands = [
         f"cd {dirname_build}",
         f"python setup.py sdist --dist-dir {dirname_dist_dist}",
-        f"mv {build_name['src']}.egg-info {dirname_dist}"
     ]
     cmd = " && ".join(cammands)
     res = os.system(cmd)
+    shutil.move(join(dirname_build, f"{build_name['src']}.egg-info"), dirname_dist)
     if res == 0:
         print("BUILD MODULE SUCCESSFUL")
     else:
@@ -266,20 +271,26 @@ def build_package_project(project_dirname, package, env):
     dirname_dist = join(project_dirname, "dist")
     dirname_dist_tar_name = join(dirname_dist, tar_name)
     # cammand
-    cammands = [
-        f"rm -rf {dirname_package_name}",
-        f"rm -rf {dirname_dist}",
-        f"mkdir {dirname_package_name}",
-        f"cp -rf {dirname_build}/* {dirname_package_name}/",
-        f"mkdir {dirname_dist}",
-        f"tar -zcvf {dirname_dist_tar_name} {tar_pacakge_name}/",
-        f"rm -rf {dirname_package_name}"
-    ]
-    cmd = " && ".join(cammands)
-    res = os.system(cmd)
+    # cammands = [
+    #     f"rm -rf {dirname_package_name}",
+    #     f"rm -rf {dirname_dist}",
+    #     f"mkdir {dirname_package_name}",
+    #     f"cp -rf {dirname_build}/* {dirname_package_name}/",
+    #     f"mkdir {dirname_dist}",
+    #     f"tar -zcvf {dirname_dist_tar_name} {tar_pacakge_name}/",
+    #     f"rm -rf {dirname_package_name}",
+    # ]
+    # cmd = " && ".join(cammands)
+    # res = os.system(cmd)
+    shutil.rmtree(dirname_package_name, ignore_errors=True)
+    shutil.rmtree(dirname_dist, ignore_errors=True)
+    if not exists(dirname_package_name):
+        os.makedirs(dirname_package_name)
+    shutil.copytree(dirname_build, dirname_package_name)
+    if not exists(dirname_dist):
+        os.makedirs(dirname_dist)
+    with tarfile.open(dirname_dist_tar_name, "w:gz") as tar:
+        tar.add(tar_pacakge_name, arcname=os.path.basename(tar_pacakge_name))
+    shutil.rmtree(dirname_package_name, ignore_errors=True)
     # 返回构建路径
-    if res == 0:
-        print("BUILD PROJECT SUCCESSFUL")
-    else:
-        print("BUILD PROJECT ERROR")
-
+    print("BUILD PROJECT SUCCESSFUL")
